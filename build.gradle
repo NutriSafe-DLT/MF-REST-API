@@ -17,7 +17,7 @@ plugins {
     id "com.github.spotbugs" version "4.6.0"
 }
 
-group = 'de.metahlfabric'
+group = 'de.nutrisafe'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '14'
 
@@ -40,7 +40,7 @@ spotbugsMain {
         xml.enabled = false
         html.enabled = true
         //ignoreFailures = true
-        //onlyAnalyze = ['de.metahlfabric.Main']
+        //onlyAnalyze = ['de.nutrisafe.Main']
     }
 }
 dependencies {
@@ -57,7 +57,8 @@ dependencies {
     implementation 'org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.3.5.RELEASE'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
-
+    implementation 'org.json:json:20210307'
+    compile 'commons-io:commons-io:2.10.0'
     implementation 'org.springframework.security:spring-security-jwt:1.1.1.RELEASE'
     implementation 'io.jsonwebtoken:jjwt:0.9.1'
     implementation 'com.google.code.gson:gson:2.8.6'
@@ -80,7 +81,7 @@ dependencies {
 
 
 bootJar {
-    mainClassName = 'de.metahlfabric.Main'
+    mainClassName = 'de.nutrisafe.Main'
 }
 
 test {

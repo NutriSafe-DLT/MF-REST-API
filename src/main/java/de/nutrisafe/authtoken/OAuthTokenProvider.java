@@ -1,10 +1,11 @@
-package de.metahlfabric.authtoken;
+package de.nutrisafe.authtoken;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import de.metahlfabric.PersistenceManager;
+import de.nutrisafe.PersistenceManager;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
@@ -25,31 +26,14 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-/**
- * Authenticates a session token of external user credentials by checking against Google OAuth or an own OAuth server.
- *
- * @author Dennis Lamken, Kathrin Kleinhammer
- * <p>
- * Copyright 2021 OTARIS Interactive Services GmbH
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 @Lazy
 @Component
 @DependsOn("userDetailsService")
-@ComponentScan(basePackages = {"de.metahlfabric"})
+@ComponentScan(basePackages = {"de.nutrisafe"})
 public class OAuthTokenProvider {
 
+    @Value("${security.jwt.token.expire-length:3600000}")
+    private long validityInMilliseconds = 3600000; // 1h
     @Autowired
     private UserDetailsService userDetailsService;
     @Autowired
@@ -75,7 +59,7 @@ public class OAuthTokenProvider {
         LinkedMultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("token", token);
         // Todo: insecure credentials! -> config
-        return requestOAuthUsername(token, header -> header.setBasicAuth("NutriSafe_Web_UI", "12345678"), body, "user_name", "http://localhost:8085/oauth/check_token");
+        return requestOAuthUsername(token, header -> header.setBasicAuth("client1", "12345678"), body, "user_name", "http://localhost:8085/oauth/check_token");
     }
 
     private String getGoogleOAuthUsername(String token) {
@@ -88,7 +72,7 @@ public class OAuthTokenProvider {
 
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     private String requestOAuthUsername(String token, Consumer<HttpHeaders> header, LinkedMultiValueMap<String, String> body, String extUsernameKey, String uri) {
-        System.out.println("[MF] Checking token validity at " + uri);
+        System.out.println("[NutriSafe REST API] Checking token validity at " + uri);
         String extUsername = null;
         WebClient.Builder webClientBuilder = WebClient.builder();
         if (header != null)
@@ -104,13 +88,11 @@ public class OAuthTokenProvider {
             JsonObject response = new Gson().fromJson(rawResponse, JsonObject.class);
             if (response != null && response.has(extUsernameKey)) {
                 extUsername = persistenceManager.getSHA256Hashed(response.get(extUsernameKey).getAsString());
-                // 1h
-                long validityInMilliseconds = 3600000;
                 long exp = System.currentTimeMillis() + validityInMilliseconds;
                 try {
                     exp = response.get("exp").getAsLong() * 1000;
                 } catch (NumberFormatException e) {
-                    System.err.println("[MF] Could not parse expiration timestamp.");
+                    System.err.println("[NutriSafe REST API] Could not parse expiration timestamp.");
                 }
                 persistenceManager.updateTokenOfExternalUser(extUsername, token, exp);
             }

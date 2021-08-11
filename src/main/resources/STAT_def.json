@@ -1,0 +1,58 @@
+{
+  "structure": {
+    "amount": 4,
+    "datasets": ["Q00", "Q10", "Q20", "Z00"],
+    "1": {
+      "row": "Q00",
+      "optional": false,
+      "type": "normal"
+    },
+    "2": {
+      "row": "Q10",
+      "optional": true,
+      "dependsOn": "Statusschlüssel",
+      "type": "complexVertical"
+    },
+    "3": {
+      "row": "Q20",
+      "optional": true,
+      "dependsOn": "Bezeichner_Messpunkt",
+      "type": "complexVertical"
+    },
+    "4": {
+      "row": "Z00",
+      "optional": false,
+      "type": "normal"
+    }
+  },
+
+  "Q00": {
+    "Satzart_Q00": [1, 3, "Q00"],
+    "Releasestand": [4, 6, "100"],
+    "Codeliste": [7, 9, "ELV"],
+    "Versender_ID": [10, 44],
+    "Empfänger_ID": [45, 79],
+    "Verursacher_ID": [80, 114]
+  },
+  "Q10": {
+    "Satzart_Q10": [1, 3, "Q10"],
+    "Sendungsnummer_Versandpartner": [4, 38],
+    "Sendungsnummer_Empfangspartner": [39, 73],
+    "Statusschlüssel": [109, 111],
+    "Datum_des_Ereignisses": [112, 119],
+    "Uhrzeit_des_Ereignisses": [120, 123]
+  },
+  "Q20": {
+    "Satzart_Q20": [1, 3, "Q20"],
+    "Sendungsnummer_Versandpartner": [4, 38],
+    "Bezeichner_Messpunkt": [39, 41],
+    "Barcode_1": [42, 76],
+    "Scandatum_1": [77, 84],
+    "Scanzeit_1": [85, 90],
+    "Scancode_1": [91, 93]
+  },
+  "Z00": {
+    "Satzart_Z00": [1, 3, "Z00"],
+    "Bordero_Datum": [10, 17]
+  }
+}

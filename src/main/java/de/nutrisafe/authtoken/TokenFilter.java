@@ -1,5 +1,6 @@
-package de.metahlfabric.authtoken;
+package de.nutrisafe.authtoken;
 
+import de.nutrisafe.functionrights.FunctionRightProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
@@ -13,27 +14,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * The TokenFilter utilizes a {@link JwtTokenProvider} and an {@link OAuthTokenProvider} in order to filter invalid
- * tokens in requests.
+ * The FunctionRightFilter utilizes a {@link FunctionRightProvider} in order to filter requests based on allowed function
+ * calls according to the whitelist entries.
  * <p>
  * Instantiate this and add it to the
- * {@link org.springframework.security.config.annotation.web.builders.HttpSecurity HttpSecurity} filter chain.
+ * {@link org.springframework.security.config.annotation.web.builders.HttpSecurity} filter chain.
  *
  * @author Dennis Lamken
- * <p>
- * Copyright 2021 OTARIS Interactive Services GmbH
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 public class TokenFilter extends GenericFilterBean {
 
@@ -52,23 +39,23 @@ public class TokenFilter extends GenericFilterBean {
         Authentication auth = null;
         if (token != null) {
             if (jwtTokenProvider.validateToken(token)) {
-                System.out.println("[MF] Password related token found.");
+                System.out.println("[NutriSafe REST API] Password related token found.");
                 auth = jwtTokenProvider.getAuthentication(token);
             } else {
                 String extUsername = oAuthTokenProvider.getExternalUsername(token);
                 if (extUsername != null) {
-                    System.out.println("[MF] OAuth token found.");
+                    System.out.println("[NutriSafe REST API] OAuth token found.");
                     auth = oAuthTokenProvider.getAuthentication(extUsername);
                 }
             }
         }
         SecurityContextHolder.getContext().setAuthentication(auth);
         if (auth == null) {
-            System.err.println("[MF] Invalid token.");
+            System.err.println("[NutriSafe REST API] Invalid token.");
             ((HttpServletResponse) res).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             ((HttpServletResponse) res).setHeader("Reason", "Invalid token");
         } else
-            System.out.println("[MF] Valid token.");
+            System.out.println("[NutriSafe REST API] Valid token.");
         filterChain.doFilter(req, res);
     }
 

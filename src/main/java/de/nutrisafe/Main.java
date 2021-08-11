@@ -1,48 +1,35 @@
-package de.metahlfabric;
+package de.nutrisafe;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.apache.commons.cli.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.apache.commons.cli.*;
 
 import java.util.Map;
 
-/**
- * Starting point of our application. It basically parses command line options and input from environment variables
- * and then starts the Spring® Application.
- *
- * @author Dennis Lamken, Tobias Wagner, Kathrin Kleinhammer
- * <p>
- * Copyright 2021 OTARIS Interactive Services GmbH
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 @PropertySource("classpath:application.properties")
 //@ComponentScan(basePackages = {"de.nutrisafe"})
 public class Main implements WebMvcConfigurer {
 
-    private final static String MF_PROPERTIES = "MF_PROPERTIES";
+    private final static String NUTRISAFE_PROPERTIES = "NUTRISAFE_PROPERTIES";
     private final static String ORG = "organization";
     private final static String PROPERTIES = "properties_file";
     private final static String PRIVATE_KEY = "private_key";
@@ -62,8 +49,8 @@ public class Main implements WebMvcConfigurer {
     @SuppressFBWarnings({"WMI_WRONG_MAP_ITERATOR"})
     public static void main(String[] args) {
         Map<String, String> env = System.getenv();
-        if (env.containsKey(MF_PROPERTIES))
-            propertiesFile = env.get(MF_PROPERTIES);
+        if(env.containsKey(NUTRISAFE_PROPERTIES))
+            propertiesFile = env.get(NUTRISAFE_PROPERTIES);
 
         // Define Options
         Options options = new Options();
@@ -72,7 +59,7 @@ public class Main implements WebMvcConfigurer {
         mspIdOption.setRequired(false);
         options.addOption(mspIdOption);
 
-        Option propertyOption = new Option("prop", PROPERTIES, true, "Sets the path to the property file. Alternatively, you can use the environment variable '" + MF_PROPERTIES + "'.");
+        Option propertyOption = new Option("prop", PROPERTIES, true, "Sets the path to the property file. Alternatively, you can use the environment variable '" + NUTRISAFE_PROPERTIES + "'.");
         propertyOption.setRequired(propertiesFile == null);
         options.addOption(propertyOption);
 
@@ -113,9 +100,9 @@ public class Main implements WebMvcConfigurer {
             dbPass = cmd.getOptionValue(DB_PASS);
 
             SpringApplication.run(Main.class, args);
-        } catch (ParseException e) {
+        } catch(ParseException e) {
             System.err.println(e.getMessage());
-            formatter.printHelp("MetaHL Fabric", options);
+            formatter.printHelp("NutriSafe REST API", options);
         }
     }
 
@@ -129,10 +116,9 @@ public class Main implements WebMvcConfigurer {
     public PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
         PropertySourcesPlaceholderConfigurer properties =
                 new PropertySourcesPlaceholderConfigurer();
-        if (propertiesFile != null) {
-            Resource[] resources = new Resource[]
-                    {new ClassPathResource("application.properties"), new ClassPathResource("application.yml"),
-                            new FileSystemResource(propertiesFile)};
+        if(propertiesFile != null) {
+            Resource[] resources = new Resource[ ]
+                    { new ClassPathResource("application.properties"), new FileSystemResource(propertiesFile)  };
             properties.setLocations(resources);
         }
         properties.setIgnoreResourceNotFound(false);

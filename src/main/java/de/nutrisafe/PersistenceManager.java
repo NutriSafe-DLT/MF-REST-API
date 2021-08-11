@@ -1,12 +1,16 @@
-package de.metahlfabric;
+package de.nutrisafe;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowCountCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.DatabaseMetaDataCallback;
+import org.springframework.jdbc.support.JdbcUtils;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,33 +20,9 @@ import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.sql.*;
+import java.util.*;
 
-/**
- * This class handles common calls on the user database and wraps them in easier functions.
- *
- * @author Dennis Lamken, Kathrin Kleinhammer
- * <p>
- * Copyright 2021 OTARIS Interactive Services GmbH
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 @Lazy
 @Service
 @SuppressFBWarnings("OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE")
@@ -82,6 +62,16 @@ public class PersistenceManager {
         return usernames.size() > 0 ? usernames.get(0) : null;
     }
 
+    public String getExternalUsernameOfUser(final String username) {
+        PreparedStatementCreator selectStatement = connection -> {
+            PreparedStatement preparedStatement = connection.prepareStatement("select extusername from external_users where username = ?");
+            preparedStatement.setString(1, username);
+            return preparedStatement;
+        };
+        List<String> usernames = this.jdbcTemplate.query(selectStatement, new SimpleStringRowMapper());
+        return usernames.size() > 0 ? usernames.get(0) : null;
+    }
+
     List<String> selectAllUsers() {
         return this.jdbcTemplate.queryForList("select username from users", String.class);
     }
@@ -95,8 +85,31 @@ public class PersistenceManager {
         return this.jdbcTemplate.query(selectStatement, new SimpleStringRowMapper());
     }
 
-    List<String> selectFromDatabase(PreparedStatementCreator selectStatement) {
-        return this.jdbcTemplate.query(selectStatement, new SimpleStringRowMapper());
+    // Todo: we might want to remove this method due to its insecure character!
+    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
+    List<Map<String, Object>> selectFromDatabase(final String[] cols, final String tableName) throws Exception {
+        if (cols.length < 1)
+            throw new Exception("No column defined.");
+
+        // check if table name exists
+        Set<String> tableNames = JdbcUtils.extractDatabaseMetaData(Objects.requireNonNull(this.jdbcTemplate.getDataSource()), new GetTableNames());
+        if (!tableNames.contains(tableName))
+            throw new Exception("Table name does not exist.");
+
+        // check if the columns exist
+        SqlRowSet oneRowFromTheTable = jdbcTemplate.queryForRowSet("select * from " + tableName + " limit 1");
+        for (String col : cols)
+            oneRowFromTheTable.findColumn(col);
+
+        StringBuilder selectStatementBuilder = new StringBuilder("select ");
+        selectStatementBuilder.append(cols[0]);
+        for (int i = 1; i < cols.length; i++) {
+            selectStatementBuilder.append(", ");
+            selectStatementBuilder.append(cols[i]);
+        }
+        selectStatementBuilder.append(" from ");
+        selectStatementBuilder.append(tableName);
+        return jdbcTemplate.queryForList(selectStatementBuilder.toString());
     }
 
     List<String> selectUserToWhitelistEntriesOfUser(final String username) {
@@ -165,9 +178,14 @@ public class PersistenceManager {
     void deleteFunctionToWhitelistEntriesOfWhitelist(String whitelist) {
         PreparedStatementCreator functionDeleteStatement = connection -> {
             PreparedStatement preparedStatement = connection.prepareStatement("delete from function where whitelist = ?");
-            preparedStatement.setString(1, whitelist);
+            try {
+                preparedStatement.setString(1, whitelist);
+            } catch (Throwable t) {
+                try (preparedStatement) {
+                    throw t;
+                }
+            }
             return preparedStatement;
-
         };
         jdbcTemplate.update(functionDeleteStatement);
     }
@@ -347,7 +365,7 @@ public class PersistenceManager {
         StringBuilder hashedStringBuilder = new StringBuilder(2 * hashedBytes.length);
         for (byte hash : hashedBytes) {
             String hex = Integer.toHexString(0xff & hash);
-            if (hex.length() == 1)
+            if(hex.length() == 1)
                 hashedStringBuilder.append('0');
             hashedStringBuilder.append(hex);
         }
@@ -365,6 +383,19 @@ public class PersistenceManager {
         @Override
         public Long mapRow(ResultSet resultSet, int i) throws SQLException {
             return resultSet.getTimestamp(1).getTime();
+        }
+    }
+
+    private static class GetTableNames implements DatabaseMetaDataCallback<Set<String>> {
+
+        @NotNull
+        public Set<String> processMetaData(DatabaseMetaData dbmd) throws SQLException {
+            ResultSet rs = dbmd.getTables(dbmd.getUserName(), null, null, new String[]{"TABLE"});
+            Set<String> l = new HashSet<>();
+            while (rs.next()) {
+                l.add(rs.getString(3));
+            }
+            return l;
         }
     }
 

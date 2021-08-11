@@ -1,0 +1,148 @@
+{
+  "structure": {
+    "amount": 9,
+    "datasets": ["A00", "A10", "B00_VERSENDER", "B00_EMPFÄNGER", "D00", "G00", "H00", "H10", "Z00", "F00"],
+    "1": {
+      "row": "A00",
+      "optional": false,
+      "type": "normal"
+    },
+    "2": {
+      "row": "A10",
+      "optional": true,
+      "dependsOn": "Ladeeinheiten",
+      "type": "normal"
+    },
+    "3": {
+      "row": "B00_VERSENDER",
+      "optional": false,
+      "type": "normal"
+    },
+    "4": {
+      "row": "B00_EMPFÄNGER",
+      "optional": false,
+      "type": "normal"
+    },
+    "5": {
+      "row": "D00",
+      "optional": false,
+      "dependsOn": "Sendungspositionen",
+      "followedBy": ["FOLL_1", "FOLL_2"],
+      "type": "followed"
+    },
+    "6": {
+      "row": "G00",
+      "optional": false,
+      "type": "normal"
+    },
+    "7": {
+      "row": "H00",
+      "optional": true,
+      "dependsOn": "Hinweistextschlüssel_1",
+      "type": "normal"
+    },
+    "8": {
+      "row": "H10",
+      "optional": true,
+      "dependsOn": "Kennzeichner_für_Text_Verwendung_1",
+      "type": "normal"
+    },
+    "9": {
+      "row": "Z00",
+      "optional": false,
+      "type": "normal"
+    },
+    "FOLL_1": {
+      "row": "E00",
+      "optional": true,
+      "dependsOn": "GG_Release",
+      "type": "normal"
+    },
+    "FOLL_2": {
+      "row": "F00",
+      "optional": true,
+      "dependsOn": "Barcodes",
+      "type": "complexVertical"
+    }
+  },
+
+  "A00": {
+    "Satzart_A00": [1, 3, "A00"],
+    "Avisierung": [4, 6],
+    "Relase_Stand": [7, 9, "100"],
+    "Bordero_Nummer": [10, 44],
+    "Bordero_Datum": [45, 53],
+    "Frachtführer": [135, 169],
+    "Frachtführer_Land": [170, 172],
+    "Frachtführer_PLZ": [173, 181],
+    "Frachtführer_Ort": [182, 199]
+  },
+  "A10": {
+    "Satzart_A10": [1, 3, "A10"],
+    "Ladeeinheiten": [4, 38]
+  },
+  "B00_VERSENDER": {
+    "Versender_Satzart_B00": [1, 3, "B00"],
+    "Laufende_Borderoposition": [4, 6, "001"],
+    "Versender_Kennzeichner": [7, 9, "SHP"],
+    "Versender_Name": [10, 44],
+    "Versender_Straße_und_Haus-Nr.": [45, 79],
+    "Versender_Landeskennzeichen": [80, 82],
+    "Versender_PLZ": [83, 91],
+    "Versender_Ort": [92, 126],
+    "Versender_Kunden-Nr.": [127, 161]
+  },
+
+  "B00_EMPFÄNGER": {
+    "Epmfänger_Satzart_B00": [1, 3, "B00"],
+    "Laufende_Borderoposition": [4, 6, "001"],
+    "Empfänger_Kennzeichen": [7, 9, "CON"],
+    "Empfänger_Name": [10, 44],
+    "Empfänger_Straße_und_Haus-Nr.": [45, 79],
+    "Empfänger_Landeskennzeichen": [80, 82],
+    "Empfänger_PLZ": [83, 91],
+    "Empfänger_Ort": [92, 126],
+    "Empfänger_Kunden-Nr.": [127, 161]
+  },
+  "D00": {
+    "Satzart_D00": [1, 3, "D00"],
+    "Laufende_Bordero_Position": [4, 6, "001"],
+    "Sendungsposition": [7, 9, "001"],
+    "Verpackungsart": [14, 16],
+    "Wareninhalt": [24, 58],
+    "Tatsächliches_Gewicht": [94, 102],
+    "Länge_in_Meter": [112, 115],
+    "Breite_in_Meter": [116, 119],
+    "Höhe_in_Meter": [120, 123]
+  },
+  "F00": {
+    "Satzart_F00": [1, 3, "F00"],
+    "Laufende_Bordero_Position": [4, 6, "001"],
+    "Sendungsposition": [7, 9, "001"],
+    "Barcodes": [10,44]
+  },
+  "G00": {
+    "Satzart_F00": [1, 3, "G00"],
+    "Laufende_Bordero_Position": [4, 6, "001"],
+    "Sendungsnummer_Versandpartner": [7, 41],
+    "Tatsächliches_Sendungs-Bruttogewicht_in_kg": [42, 50],
+    "Frankatur": [51, 53],
+    "Direktzustellungs-Kz.": [54, 54]
+  },
+  "H00": {
+    "Satzart_H00": [1, 3, "H00"],
+    "Laufende_Bordero_Position": [4, 6, "001"],
+    "Hinweistextschlüssel_1": [7, 9],
+    "Hinweiszusatztext_1": [10, 44]
+  },
+  "H10": {
+    "Satzart_H00": [1, 3, "H10"],
+    "Laufende_Bordero_Position": [4, 6, "001"],
+    "Kennzeichner_für_Text_Verwendung_1": [7, 9],
+    "Freier_Text_1": [10, 79]
+  },
+  "Z00": {
+    "Satzart_Z00": [1, 3, "Z00"],
+    "Bordero_Datum": [10, 17]
+  }
+}

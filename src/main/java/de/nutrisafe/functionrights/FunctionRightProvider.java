@@ -1,4 +1,4 @@
-package de.metahlfabric.functionrights;
+package de.nutrisafe.functionrights;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,25 +21,11 @@ import java.sql.PreparedStatement;
  * You can check this by calling {@link #validateFunction(ServletRequest)}.
  *
  * @author Dennis Lamken
- * <p>
- * Copyright 2021 OTARIS Interactive Services GmbH
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 @Lazy
 @Component
 @DependsOn("jdbcTemplate")
-@ComponentScan(basePackages = {"de.metahlfabric"})
+@ComponentScan(basePackages = {"de.nutrisafe"})
 @SuppressFBWarnings("OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE")
 public class FunctionRightProvider {
 
@@ -62,7 +48,7 @@ public class FunctionRightProvider {
                     return true;
                 }
             } catch (Exception e) {
-                System.err.println("[MF] Could not load user details!");
+                System.err.println("Could not load user details!");
                 e.printStackTrace();
             }
         } else
@@ -71,6 +57,7 @@ public class FunctionRightProvider {
     }
 
     private boolean isFunctionWhitelisted(String function, String username) {
+        /*
         RowCountCallbackHandler countCallback = new RowCountCallbackHandler();
         PreparedStatementCreator whitelistSelectStatement = connection -> {
             PreparedStatement preparedStatement = connection.prepareStatement("select * from " +
@@ -84,6 +71,10 @@ public class FunctionRightProvider {
         };
         jdbcTemplate.query(whitelistSelectStatement, countCallback);
         return countCallback.getRowCount() > 0;
+
+         */
+        return true;
+
     }
 
 }
